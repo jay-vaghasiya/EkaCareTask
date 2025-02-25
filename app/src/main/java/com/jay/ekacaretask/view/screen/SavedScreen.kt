@@ -1,4 +1,4 @@
-package com.jay.ekacaretask.view
+package com.jay.ekacaretask.view.screen
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,70 +53,70 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SavedScreen(navController: NavHostController) {
     val viewModel: LocalNewsViewModel = koinViewModel()
-    val savedarticleState by viewModel.savedArticles.collectAsState()
+    val savedArticleState by viewModel.savedArticles.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+    var articleToDelete by remember { mutableStateOf<Articles?>(null) }
 
     AnimatedContent(
-        targetState = savedarticleState,
+        targetState = savedArticleState,
         transitionSpec = {
             fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
         }, label = "contentAnimation"
-    ) { targetState ->
-        if (targetState.isNotEmpty()) {
+    ) { articles ->
+        if (articles.isNotEmpty()) {
             LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp)) {
-                items(savedarticleState) { article ->
-                    ArticlesItem(article, onDeleteClick = {
-                        showDialog = true
-                    }) {
-                        navController.navigate(
-                            Web(
-                                url = article.url,
-                                title = article.title,
-                                description = article.description,
-                                urlToImage = article.urlOfImage,
+                items(articles) { article ->
+                    ArticlesItem(article,
+                        onDeleteClick = {
+                            articleToDelete = article
+                            showDialog = true
+                        },
+                        onClick = {
+                            navController.navigate(
+                                Web(
+                                    url = article.url,
+                                    title = article.title,
+                                    description = article.description,
+                                    urlToImage = article.urlOfImage,
+                                )
                             )
-                        )
-                    }
-                    if (showDialog) {
-                        AlertDialog(
-                            onDismissRequest = { showDialog = false },
-                            title = { Text("Delete Article") },
-                            text = { Text("Are you sure you want to delete this article?") },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    viewModel.deleteArticle(
-                                        article = Articles(
-                                            article.id,
-                                            article.title,
-                                            article.description,
-                                            article.urlOfImage,
-                                            article.url
-                                        )
-                                    )
-                                    showDialog = false
-                                }) {
-                                    Text("Delete")
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showDialog = false }) {
-                                    Text("Cancel")
-                                }
-                            }
-                        )
-                    }
+                        }
+                    )
                 }
             }
-
         } else {
             Box(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Text("No Saved Articles", modifier = Modifier.basicMarquee())
             }
         }
+    }
+
+    if (showDialog && articleToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Delete Article") },
+            text = { Text("Are you sure you want to delete this article?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteArticle(articleToDelete!!)
+                    showDialog = false
+                    articleToDelete = null
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDialog = false
+                    articleToDelete = null
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -144,7 +144,7 @@ fun ArticlesItem(article: Articles, onDeleteClick: () -> Unit, onClick: () -> Un
             )
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
                     .padding(8.dp)
             ) {
                 Text(
@@ -154,22 +154,18 @@ fun ArticlesItem(article: Articles, onDeleteClick: () -> Unit, onClick: () -> Un
                     overflow = TextOverflow.Ellipsis,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = article.description,
                     fontSize = 14.sp,
                     maxLines = 3,
                     fontWeight = FontWeight.Normal
                 )
-
             }
-
         }
 
         HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
         )
 
         Row(
@@ -177,25 +173,12 @@ fun ArticlesItem(article: Articles, onDeleteClick: () -> Unit, onClick: () -> Un
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-
-            TextButton(
-                onClick = { onClick() },
-            ) {
-                Text(
-                    text = "Read More",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(vertical = 8.dp, horizontal = 16.dp)
-                )
+            TextButton(onClick = onClick) {
+                Text("Read More", fontWeight = FontWeight.Bold, modifier = Modifier.padding(8.dp))
             }
-            IconButton(onClick = { onDeleteClick() }) {
-                Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red)
-
+            IconButton(onClick = onDeleteClick) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
             }
-
         }
-
-        }
-
-
+    }
 }

@@ -1,4 +1,4 @@
-package com.jay.ekacaretask.view
+package com.jay.ekacaretask.view.screen
 
 import kotlinx.serialization.Serializable
 
