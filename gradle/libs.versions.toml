@@ -18,7 +18,7 @@ coilNetworkOkhttp = "3.0.4"
 koinAndroidxCompose = "4.0.1"
 kotlinxDatetime = "0.6.1"
 converterGson = "2.7.2"
-ksp = "1.9.20-1.0.13"
+ksp = "2.0.0-1.0.21"
 room = "2.6.1"
 
 [libraries]
