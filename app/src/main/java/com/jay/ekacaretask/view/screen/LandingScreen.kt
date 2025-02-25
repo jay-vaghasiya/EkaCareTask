@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,10 +25,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Newspaper
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,6 +53,7 @@ import androidx.navigation.NavHostController
 import coil3.compose.SubcomposeAsyncImage
 import com.jay.ekacaretask.model.datamodel.Article
 import com.jay.ekacaretask.model.datamodel.NewsResponse
+import com.jay.ekacaretask.view.componets.Share
 import com.jay.ekacaretask.view.componets.TripleOrbitLoading
 import com.jay.ekacaretask.viewmodel.NewsViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -105,7 +108,9 @@ fun OfflineContent(newsResponse: NewsResponse?, navController: NavHostController
         }
         Text(
             text = "You are offline. Please check your connection.",
-            modifier = Modifier.fillMaxWidth().basicMarquee(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .basicMarquee(),
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             fontSize = 18.sp
@@ -144,7 +149,10 @@ fun LandingContent(newsResponse: NewsResponse?, navController: NavHostController
         contentPadding = PaddingValues(12.dp)
     ) {
         items(newsResponse?.articles.orEmpty()) { article ->
-            ArticleItem(article) {
+            ArticleItem(article, onShareClick = {
+
+            }
+            ) {
                 navController.navigate(
                     Web(
                         url = article.url.orEmpty(),
@@ -159,18 +167,25 @@ fun LandingContent(newsResponse: NewsResponse?, navController: NavHostController
 }
 
 @Composable
-fun ArticleItem(article: Article, onClick: () -> Unit) {
+fun ArticleItem(article: Article, onShareClick: () -> Unit, onClick: () -> Unit) {
+    val context = LocalContext.current
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             SubcomposeAsyncImage(
                 model = article.urlToImage,
-                modifier = Modifier.size(136.dp).clip(RoundedCornerShape(12.dp)),
+                modifier = Modifier
+                    .size(136.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 contentDescription = article.title,
                 contentScale = ContentScale.Crop,
                 loading = {
@@ -183,7 +198,9 @@ fun ArticleItem(article: Article, onClick: () -> Unit) {
                 }
             )
             Column(
-                modifier = Modifier.fillMaxWidth().padding(8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
             ) {
                 Text(
                     text = article.title.orEmpty(),
@@ -203,18 +220,27 @@ fun ArticleItem(article: Article, onClick: () -> Unit) {
         }
 
         HorizontalDivider(
-            modifier = Modifier.fillMaxWidth().padding(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
         )
-        Box(
-            modifier = Modifier.fillMaxWidth().padding(4.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
         ) {
-            Text(
-                text = "Read More",
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.CenterEnd).padding(vertical = 8.dp, horizontal = 16.dp).clickable {
-                    onClick()
-                }
-            )
+            TextButton(onClick = { onClick() }
+            ) {
+                Text(
+                    text = "Read More",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                )
+            }
+            Share(text = article.url.toString(), context = context)
+
         }
     }
 }
